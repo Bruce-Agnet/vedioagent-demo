@@ -3921,11 +3921,18 @@
       row.appendChild(actions);
 
       row.onclick = () => {
+        const wasSelected = state.libraryUI.selectedFolderId === folder.id;
         state.libraryUI.selectedFolderId = folder.id;
         deselectAsset();
-        // Selecting a folder with subfolders also auto-expands it
-        // (clicking the chevron alone still toggles independently for collapse)
-        if (hasChildren && !isExpanded) state.libraryUI.expandedFolders.add(folder.id);
+        // Row-click toggle behavior (Notion / Linear style):
+        // - first click on a collapsed folder → select + expand
+        // - re-click on already-selected expanded folder → collapse (keeps select)
+        // - clicking another already-expanded folder → keep it expanded, just switch select
+        // - chevron click is a separate handler that toggles independently of select
+        if (hasChildren) {
+          if (!isExpanded) state.libraryUI.expandedFolders.add(folder.id);
+          else if (wasSelected) state.libraryUI.expandedFolders.delete(folder.id);
+        }
         renderFolderTree();
         renderFolderCardGrid();
       };
