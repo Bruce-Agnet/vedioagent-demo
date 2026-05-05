@@ -3923,6 +3923,9 @@
       row.onclick = () => {
         state.libraryUI.selectedFolderId = folder.id;
         deselectAsset();
+        // Selecting a folder with subfolders also auto-expands it
+        // (clicking the chevron alone still toggles independently for collapse)
+        if (hasChildren && !isExpanded) state.libraryUI.expandedFolders.add(folder.id);
         renderFolderTree();
         renderFolderCardGrid();
       };
