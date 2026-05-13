@@ -1,0 +1,1424 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>版本 B · Liquid Glass Playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:opsz,wght@9..40,300..900&family=Manrope:wght@300..800&family=Geist:wght@300..900&family=Geist+Mono:wght@300..900&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   Page frame
+   ========================================================== */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:#0a0a0c;color:#e6e6ea;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img,svg{display:block;max-width:100%}
+
+.pg-top{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;gap:24px;
+  background:rgba(10,10,12,.55);backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.pg-top .brand{display:flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.02em}
+.pg-top .brand b{font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:18px}
+.pg-top .brand .sub{color:#a5a5ae}
+.pg-top nav{display:flex;gap:4px;font-size:13px}
+.pg-top nav a{
+  color:#d1d1d8;text-decoration:none;padding:7px 13px;border-radius:999px;
+  border:1px solid transparent;transition:.18s;
+}
+.pg-top nav a:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.pg-top nav a.disabled{color:#6c6c75;pointer-events:none}
+
+.pg-intro{
+  position:relative;padding:80px 28px 48px;max-width:980px;margin:0 auto;
+}
+.pg-intro h2{
+  font-family:'Fraunces',serif;font-weight:300;
+  font-size:clamp(40px,5.4vw,64px);letter-spacing:-.022em;line-height:1.04;
+  margin:0 0 22px;color:#f4f4f7;
+}
+.pg-intro h2 em{font-style:italic;font-weight:300;color:#a8a4b8}
+.pg-intro p{
+  font-size:16px;line-height:1.72;color:#bdbdc7;max-width:64ch;margin:0 0 12px;
+}
+.pg-intro .meta{
+  display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;
+  font-size:12px;color:#9a9aa3;font-family:'JetBrains Mono',monospace;
+}
+.pg-intro .meta span::before{content:"· ";color:#4a4a55;margin-right:4px}
+.pg-intro .meta span:first-child::before{content:""}
+
+/* ==========================================================
+   Variant container
+   ========================================================== */
+.variant{
+  position:relative;margin:0 28px 32px;
+  border-radius:24px;overflow:hidden;isolation:isolate;
+  box-shadow:0 30px 80px -40px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04);
+}
+.variant .bg{
+  position:absolute;inset:0;z-index:-2;pointer-events:none;
+}
+.variant .bg::after{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
+  opacity:.18;mix-blend-mode:overlay;
+}
+.variant-tag{
+  position:absolute;top:18px;left:20px;z-index:5;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.1em;
+  padding:5px 10px;border-radius:999px;
+  background:rgba(255,255,255,.08);color:#fff;
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+.pick-btn{
+  position:absolute;top:14px;right:18px;z-index:5;
+  font-family:inherit;font-size:13px;font-weight:500;
+  padding:9px 16px;border-radius:999px;cursor:pointer;
+  background:rgba(255,255,255,.92);color:#0a0a0c;
+  border:1px solid rgba(255,255,255,.4);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  box-shadow:0 6px 20px -8px rgba(0,0,0,.4);
+  transition:.18s;
+}
+.pick-btn:hover{background:#fff;transform:translateY(-1px)}
+.pick-btn.picked{background:#1f9d55;color:#fff;border-color:#1f9d55}
+.pick-btn.picked::before{content:"✓ ";font-weight:700}
+
+.v-stage{
+  position:relative;padding:84px 56px 56px;display:grid;gap:42px;
+}
+@media(max-width:760px){.v-stage{padding:84px 24px 36px}}
+
+.v-head h3{margin:0 0 4px;letter-spacing:-.02em}
+.v-head .tag-line{margin:6px 0 0;font-size:14px;line-height:1.55;max-width:64ch}
+.v-head .ref{
+  margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;
+  font-size:11px;letter-spacing:.04em;font-family:'JetBrains Mono',monospace;
+}
+.v-head .ref span{padding:4px 10px;border-radius:999px}
+
+.row{display:grid;gap:24px}
+.row.cols-2{grid-template-columns:1fr 1fr}
+@media(max-width:1080px){.row.cols-2{grid-template-columns:1fr}}
+
+.section-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  margin:0 0 12px;opacity:.72;
+}
+
+.swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px}
+.swatch{
+  aspect-ratio:1.15;border-radius:14px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:10px 12px;font-size:11px;line-height:1.3;
+  font-family:'JetBrains Mono',monospace;
+  border:1px solid rgba(255,255,255,.08);
+}
+.swatch.glass{backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px)}
+.swatch .hex{font-weight:600;letter-spacing:0}
+.swatch .name{opacity:.65;margin-top:2px}
+
+.type-spec p{margin:0 0 6px}
+.type-spec .display{font-size:54px;line-height:1.02;letter-spacing:-.025em;margin-bottom:14px}
+.type-spec .body{font-size:14.5px;line-height:1.7}
+.type-spec .label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-top:14px;font-family:'JetBrains Mono',monospace}
+
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{
+  font-family:inherit;font-weight:500;font-size:13px;
+  padding:9px 17px;border-radius:999px;cursor:pointer;
+  border:1px solid transparent;transition:.18s;
+  backdrop-filter:saturate(180%) blur(14px);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+}
+.btn[disabled]{opacity:.35;pointer-events:none}
+
+.tag-row{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  font-size:12px;padding:5px 11px;border-radius:999px;cursor:pointer;
+  backdrop-filter:saturate(180%) blur(14px);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+}
+
+.input-box{
+  border-radius:22px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:14px;
+  backdrop-filter:saturate(200%) blur(28px);
+  -webkit-backdrop-filter:saturate(200%) blur(28px);
+}
+.input-box .ref-uploader{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;padding:8px 12px;border-radius:12px;cursor:pointer;
+  align-self:flex-start;
+}
+.input-box .placeholder{font-size:14px;line-height:1.6;min-height:42px}
+.input-box .controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.input-box .controls .pill{
+  font-size:12px;padding:6px 11px;border-radius:999px;
+  display:inline-flex;align-items:center;gap:6px;
+  backdrop-filter:saturate(180%) blur(14px);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+}
+.input-box .controls .spacer{flex:1}
+.input-box .send{
+  width:32px;height:32px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;font-weight:600;
+}
+
+.result-card{
+  border-radius:20px;overflow:hidden;display:flex;flex-direction:column;
+  backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
+}
+.result-card .preview{
+  aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+  font-size:34px;
+}
+.result-card .meta{
+  display:flex;gap:8px;flex-wrap:wrap;font-size:11px;
+  padding:11px 16px;font-family:'JetBrains Mono',monospace;
+}
+.result-card .actions{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 14px;font-size:12px}
+.result-card .actions span{padding:5px 10px;border-radius:999px;cursor:pointer}
+.result-card .prompt{padding:14px 16px;font-size:13px;line-height:1.6}
+
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.proj-card{
+  border-radius:18px;padding:22px 16px;
+  text-align:center;font-size:14px;font-weight:500;cursor:pointer;
+  transition:.18s;
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+
+.layout-mini{
+  border-radius:18px;overflow:hidden;
+  display:grid;grid-template-columns:64px 1fr 1.5fr;
+  height:240px;font-size:11px;
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+.layout-mini > div{padding:10px;display:flex;flex-direction:column;gap:6px}
+.layout-mini .ll-item,.layout-mini .lc-item{
+  height:20px;border-radius:6px;display:flex;align-items:center;padding:0 8px;
+  font-size:10px;
+}
+.layout-mini .lc-item{height:30px}
+.layout-mini .lr-card{flex:1;border-radius:10px}
+
+.canvas-mini{
+  border-radius:18px;height:240px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+}
+.canvas-mini::before{
+  content:"";position:absolute;inset:0;
+  background-image:radial-gradient(circle at 1px 1px,currentColor 1px,transparent 0);
+  background-size:20px 20px;opacity:.18;
+}
+.canvas-mini span{position:relative;z-index:1;opacity:.55;letter-spacing:.04em}
+
+footer.pg-bottom{
+  padding:60px 28px 80px;text-align:center;
+  font-size:13px;color:#9a9aa3;
+}
+footer.pg-bottom strong{color:#f4f4f7;font-weight:600}
+
+/* ==========================================================
+   D1 · Liquid Cinematic — warm dark photography
+   ========================================================== */
+.d1{color:#f4ede0}
+.d1 .bg{
+  background:
+    radial-gradient(60% 50% at 20% 30%,rgba(255,170,90,.34),transparent 70%),
+    radial-gradient(50% 50% at 80% 25%,rgba(94,140,210,.22),transparent 70%),
+    radial-gradient(80% 60% at 50% 110%,rgba(0,0,0,.7),transparent 60%),
+    linear-gradient(170deg,#1d130a 0%,#2a1c10 35%,#0c0805 100%);
+}
+.d1 .v-head h3{
+  font-family:'Fraunces',serif;font-weight:300;font-size:80px;line-height:.96;
+  background:linear-gradient(180deg,#fff8e8 0%,#d8b58e 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.d1 .v-head h3 em{font-style:italic;font-weight:300;display:block;font-size:.46em;color:#d3c7b1;-webkit-text-fill-color:#d3c7b1;margin-top:8px}
+.d1 .v-head .tag-line{color:#d8cfbf}
+.d1 .v-head .ref span{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#e7d8c0;backdrop-filter:blur(14px)}
+.d1 .section-label{color:#c9bca3}
+.d1 .swatch{color:#fff;border-color:rgba(255,255,255,.08)}
+.d1 .swatch.glass{background:rgba(255,255,255,.08)}
+.d1 .type-spec .display{font-family:'Fraunces',serif;font-weight:300;color:#fff5e0}
+.d1 .type-spec .display em{font-style:italic;color:#d3a871}
+.d1 .type-spec .body{color:#c9bca3}
+.d1 .type-spec .label{color:#a99980}
+.d1 .btn{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.18)}
+.d1 .btn.primary{background:#fff;color:#231509;border-color:#fff}
+.d1 .btn.ghost{background:transparent;border-color:transparent;color:#c9bca3}
+.d1 .btn:hover{background:rgba(255,255,255,.18)}
+.d1 .btn.primary:hover{background:#fff8e8}
+.d1 .chip{background:rgba(255,255,255,.07);color:#e8dec5;border:1px solid rgba(255,255,255,.12)}
+.d1 .chip.on{background:rgba(255,210,140,.92);color:#231509;border-color:rgba(255,210,140,.92);font-weight:500}
+.d1 .input-box{background:rgba(20,12,5,.45);border:1px solid rgba(255,255,255,.1);box-shadow:0 12px 40px -16px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08)}
+.d1 .input-box .ref-uploader{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18);color:#d8cfbf}
+.d1 .input-box .placeholder{color:#a99980}
+.d1 .input-box .controls .pill{background:rgba(255,255,255,.06);color:#e8dec5;border:1px solid rgba(255,255,255,.1)}
+.d1 .input-box .send{background:linear-gradient(135deg,#fff8e8,#d3a871);color:#231509}
+.d1 .result-card{background:rgba(20,12,5,.42);border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 36px -16px rgba(0,0,0,.5)}
+.d1 .result-card .preview{background:linear-gradient(135deg,rgba(211,168,113,.25),rgba(94,140,210,.2));color:#fff5e0}
+.d1 .result-card .prompt{color:#e8dec5;border-bottom:1px solid rgba(255,255,255,.08)}
+.d1 .result-card .meta{color:#a99980;border-top:1px solid rgba(255,255,255,.08)}
+.d1 .result-card .actions span{background:rgba(255,255,255,.06);color:#e8dec5;border:1px solid rgba(255,255,255,.1)}
+.d1 .proj-card{background:rgba(20,12,5,.42);color:#fff5e0;border:1px solid rgba(255,255,255,.1)}
+.d1 .proj-card.create{background:linear-gradient(135deg,#fff8e8,#d3a871);color:#231509;border:none;font-weight:600}
+.d1 .proj-card:hover{background:rgba(255,255,255,.12)}
+.d1 .proj-card.create:hover{filter:brightness(1.05);background:linear-gradient(135deg,#fff8e8,#d3a871)}
+.d1 .layout-mini{background:rgba(20,12,5,.42);border:1px solid rgba(255,255,255,.08);color:#fff5e0}
+.d1 .layout-mini .ll{background:rgba(0,0,0,.18);border-right:1px solid rgba(255,255,255,.06)}
+.d1 .layout-mini .lc{background:rgba(255,255,255,.025);border-right:1px solid rgba(255,255,255,.06)}
+.d1 .layout-mini .ll-item{color:#c9bca3;font-family:'Fraunces',serif;font-style:italic;font-size:11px}
+.d1 .layout-mini .ll-item.on{background:rgba(255,210,140,.92);color:#231509;font-style:normal;font-weight:600}
+.d1 .layout-mini .lc-item{background:rgba(255,255,255,.04);color:#d8cfbf}
+.d1 .layout-mini .lr-card{background:linear-gradient(135deg,rgba(211,168,113,.18),rgba(94,140,210,.14));border:1px solid rgba(255,255,255,.06)}
+.d1 .canvas-mini{background:rgba(20,12,5,.32);border:1px solid rgba(255,255,255,.08);color:#d3c7b1}
+
+/* ==========================================================
+   D2 · Liquid Aurora — vibrant night with iridescent glass
+   ========================================================== */
+.d2{color:#f6f0ff}
+.d2 .bg{
+  background:
+    radial-gradient(50% 50% at 12% 18%,rgba(255,80,180,.45),transparent 70%),
+    radial-gradient(45% 50% at 88% 12%,rgba(80,140,255,.45),transparent 70%),
+    radial-gradient(55% 45% at 78% 92%,rgba(60,230,200,.4),transparent 70%),
+    radial-gradient(45% 50% at 18% 88%,rgba(160,80,255,.45),transparent 70%),
+    linear-gradient(160deg,#0c0820 0%,#13083a 60%,#070418 100%);
+}
+.d2 .v-head h3{
+  font-family:'Geist','Inter',sans-serif;font-weight:600;font-size:62px;letter-spacing:-.03em;
+  background:linear-gradient(120deg,#ff7bd4 0%,#a47bff 35%,#7baeff 65%,#5fe9c9 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.d2 .v-head h3 em{font-style:normal;font-weight:300;display:block;font-size:.4em;color:#cdc0e8;-webkit-text-fill-color:#cdc0e8;margin-top:10px;letter-spacing:0}
+.d2 .v-head .tag-line{color:#cdc0e8}
+.d2 .v-head .ref span{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:#e7dffb;backdrop-filter:blur(14px)}
+.d2 .section-label{color:#a89cc8;font-family:'Geist Mono','JetBrains Mono',monospace}
+.d2 .swatch{color:#fff;border-color:rgba(255,255,255,.1)}
+.d2 .swatch.glass{background:rgba(255,255,255,.08)}
+.d2 .swatch.gradient{background:linear-gradient(135deg,#ff7bd4,#a47bff,#7baeff,#5fe9c9)}
+.d2 .type-spec .display{font-family:'Geist',sans-serif;font-weight:600;background:linear-gradient(120deg,#ff7bd4,#a47bff,#7baeff,#5fe9c9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.d2 .type-spec .display em{font-style:normal;color:#f6f0ff;-webkit-text-fill-color:#f6f0ff}
+.d2 .type-spec .body{color:#cdc0e8;font-size:14px}
+.d2 .type-spec .label{color:#a89cc8;font-family:'Geist Mono',monospace}
+.d2 .btn{background:rgba(255,255,255,.08);color:#f6f0ff;border-color:rgba(255,255,255,.16)}
+.d2 .btn.primary{background:linear-gradient(135deg,#ff7bd4,#a47bff,#5fe9c9);color:#0c0820;border:none;font-weight:600;box-shadow:0 8px 28px -10px rgba(164,123,255,.6)}
+.d2 .btn.ghost{background:transparent;border-color:transparent;color:#a89cc8}
+.d2 .btn:hover{background:rgba(255,255,255,.14)}
+.d2 .btn.primary:hover{filter:brightness(1.08)}
+.d2 .chip{background:rgba(255,255,255,.07);color:#e7dffb;border:1px solid rgba(255,255,255,.12)}
+.d2 .chip.on{background:linear-gradient(135deg,#ff7bd4,#a47bff,#5fe9c9);color:#0c0820;border:none;font-weight:600}
+.d2 .input-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);box-shadow:0 16px 48px -16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.1)}
+.d2 .input-box .ref-uploader{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);color:#e7dffb}
+.d2 .input-box .placeholder{color:#a89cc8}
+.d2 .input-box .controls .pill{background:rgba(255,255,255,.07);color:#e7dffb;border:1px solid rgba(255,255,255,.12)}
+.d2 .input-box .send{background:linear-gradient(135deg,#ff7bd4,#5fe9c9);color:#0c0820}
+.d2 .result-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);box-shadow:0 12px 36px -16px rgba(0,0,0,.5)}
+.d2 .result-card .preview{background:linear-gradient(135deg,rgba(255,123,212,.22),rgba(95,233,201,.22));color:#f6f0ff}
+.d2 .result-card .prompt{color:#f6f0ff;border-bottom:1px solid rgba(255,255,255,.08)}
+.d2 .result-card .meta{color:#a89cc8;border-top:1px solid rgba(255,255,255,.08)}
+.d2 .result-card .actions span{background:rgba(255,255,255,.07);color:#e7dffb;border:1px solid rgba(255,255,255,.12)}
+.d2 .proj-card{background:rgba(255,255,255,.05);color:#f6f0ff;border:1px solid rgba(255,255,255,.12)}
+.d2 .proj-card.create{background:linear-gradient(135deg,#ff7bd4,#a47bff,#5fe9c9);color:#0c0820;border:none;font-weight:600}
+.d2 .proj-card:hover{background:rgba(255,255,255,.12)}
+.d2 .layout-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#f6f0ff}
+.d2 .layout-mini .ll{background:rgba(0,0,0,.22);border-right:1px solid rgba(255,255,255,.06)}
+.d2 .layout-mini .lc{background:rgba(255,255,255,.02);border-right:1px solid rgba(255,255,255,.06)}
+.d2 .layout-mini .ll-item{color:#a89cc8}
+.d2 .layout-mini .ll-item.on{background:linear-gradient(135deg,#ff7bd4,#5fe9c9);color:#0c0820;font-weight:600}
+.d2 .layout-mini .lc-item{background:rgba(255,255,255,.04);color:#cdc0e8}
+.d2 .layout-mini .lr-card{background:linear-gradient(135deg,rgba(255,123,212,.18),rgba(95,233,201,.18));border:1px solid rgba(255,255,255,.06)}
+.d2 .canvas-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#a89cc8}
+
+/* ==========================================================
+   D3 · Liquid Obsidian — near-black studio with subtle blue
+   ========================================================== */
+.d3{color:#e2e4eb}
+.d3 .bg{
+  background:
+    radial-gradient(45% 40% at 88% 8%,rgba(120,170,255,.16),transparent 70%),
+    radial-gradient(60% 50% at 12% 92%,rgba(80,200,180,.12),transparent 70%),
+    radial-gradient(80% 60% at 50% 50%,rgba(20,22,28,.4),transparent 70%),
+    linear-gradient(170deg,#0a0b0e 0%,#0f1116 50%,#08090c 100%);
+}
+.d3 .v-head h3{font-family:'Inter',sans-serif;font-weight:700;font-size:54px;letter-spacing:-.025em;color:#f1f3f7}
+.d3 .v-head h3 em{font-style:normal;font-weight:300;display:block;font-size:.42em;color:#7d8493;margin-top:8px;letter-spacing:0;font-family:'JetBrains Mono',monospace}
+.d3 .v-head .tag-line{color:#a5acb9}
+.d3 .v-head .ref span{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#a5acb9;backdrop-filter:blur(14px);font-family:'JetBrains Mono',monospace;font-size:11px}
+.d3 .section-label{color:#7d8493}
+.d3 .swatch{color:#fff;border-color:rgba(255,255,255,.06)}
+.d3 .swatch.glass{background:rgba(255,255,255,.04)}
+.d3 .type-spec .display{font-weight:700;font-size:46px;letter-spacing:-.025em;color:#f1f3f7}
+.d3 .type-spec .display em{font-style:normal;color:#78aaff;font-weight:300}
+.d3 .type-spec .body{color:#a5acb9;font-size:14px}
+.d3 .type-spec .label{color:#7d8493}
+.d3 .btn{background:rgba(255,255,255,.05);color:#e2e4eb;border-color:rgba(255,255,255,.1);font-size:13px;padding:8px 14px;border-radius:8px}
+.d3 .btn.primary{background:#78aaff;color:#0a0b0e;border-color:#78aaff;font-weight:600}
+.d3 .btn.ghost{background:transparent;border-color:transparent;color:#7d8493}
+.d3 .btn:hover{background:rgba(255,255,255,.1)}
+.d3 .btn.primary:hover{background:#a5c4ff}
+.d3 .chip{background:rgba(255,255,255,.04);color:#a5acb9;border:1px solid rgba(255,255,255,.08);font-size:11px;border-radius:6px}
+.d3 .chip.on{background:rgba(120,170,255,.18);color:#78aaff;border-color:rgba(120,170,255,.4)}
+.d3 .input-box{background:rgba(15,17,22,.6);border:1px solid rgba(255,255,255,.07);border-radius:14px;box-shadow:0 12px 40px -16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04)}
+.d3 .input-box .ref-uploader{background:transparent;border:1px dashed rgba(255,255,255,.12);color:#a5acb9;border-radius:8px}
+.d3 .input-box .placeholder{color:#7d8493;font-size:13px}
+.d3 .input-box .controls .pill{background:rgba(255,255,255,.04);color:#e2e4eb;border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:11px}
+.d3 .input-box .send{background:#78aaff;color:#0a0b0e;border-radius:8px;width:30px;height:30px}
+.d3 .result-card{background:rgba(15,17,22,.55);border:1px solid rgba(255,255,255,.06);border-radius:12px}
+.d3 .result-card .preview{background:rgba(0,0,0,.3);color:#7d8493}
+.d3 .result-card .prompt{color:#e2e4eb;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px}
+.d3 .result-card .meta{color:#7d8493;border-top:1px solid rgba(255,255,255,.06);font-size:10px}
+.d3 .result-card .actions span{background:rgba(255,255,255,.04);color:#a5acb9;border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:11px}
+.d3 .proj-card{background:rgba(15,17,22,.55);border:1px solid rgba(255,255,255,.07);border-radius:12px;color:#e2e4eb;font-size:13px}
+.d3 .proj-card.create{background:rgba(120,170,255,.14);border-color:rgba(120,170,255,.4);color:#78aaff;font-weight:500}
+.d3 .proj-card:hover{background:rgba(255,255,255,.07)}
+.d3 .layout-mini{background:rgba(15,17,22,.5);border:1px solid rgba(255,255,255,.06);color:#e2e4eb;border-radius:10px;font-size:10px}
+.d3 .layout-mini .ll{background:rgba(0,0,0,.3);border-right:1px solid rgba(255,255,255,.05)}
+.d3 .layout-mini .lc{background:rgba(255,255,255,.02);border-right:1px solid rgba(255,255,255,.05)}
+.d3 .layout-mini .ll-item{color:#7d8493;font-size:9px;border-radius:4px}
+.d3 .layout-mini .ll-item.on{background:rgba(120,170,255,.18);color:#78aaff;font-weight:500}
+.d3 .layout-mini .lc-item{background:rgba(255,255,255,.04);color:#a5acb9;border-radius:4px}
+.d3 .layout-mini .lr-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.05);border-radius:6px}
+.d3 .canvas-mini{background:rgba(0,0,0,.3);border:1px dashed rgba(255,255,255,.1);color:#7d8493;border-radius:10px}
+
+/* ==========================================================
+   L1 · Liquid Sunlit — warm cream daylight
+   ========================================================== */
+.l1{color:#2a2018}
+.l1 .bg{
+  background:
+    radial-gradient(60% 50% at 22% 20%,rgba(255,210,150,.55),transparent 70%),
+    radial-gradient(50% 50% at 82% 80%,rgba(255,180,160,.4),transparent 70%),
+    radial-gradient(70% 50% at 50% 50%,rgba(255,255,255,.4),transparent 70%),
+    linear-gradient(160deg,#fdf3e3 0%,#fbe8c9 50%,#f8d8a4 100%);
+}
+.l1 .variant-tag{background:rgba(255,255,255,.55);color:#5a4634;border-color:rgba(0,0,0,.06)}
+.l1 .pick-btn{background:#2a2018;color:#fff8e8;border-color:#2a2018}
+.l1 .pick-btn:hover{background:#1a130d;border-color:#1a130d}
+.l1 .v-head h3{
+  font-family:'Fraunces',serif;font-weight:300;font-size:78px;line-height:.96;
+  background:linear-gradient(180deg,#3a2812 0%,#a87242 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.l1 .v-head h3 em{font-style:italic;font-weight:300;display:block;font-size:.46em;color:#8b6a4a;-webkit-text-fill-color:#8b6a4a;margin-top:8px}
+.l1 .v-head .tag-line{color:#5a4634}
+.l1 .v-head .ref span{background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.08);color:#5a4634;backdrop-filter:blur(14px)}
+.l1 .section-label{color:#8b6a4a}
+.l1 .swatch{color:#2a2018;border-color:rgba(0,0,0,.06)}
+.l1 .swatch.dark{color:#fff8e8}
+.l1 .swatch.glass{background:rgba(255,255,255,.55)}
+.l1 .type-spec .display{font-family:'Fraunces',serif;font-weight:300;color:#2a2018}
+.l1 .type-spec .display em{font-style:italic;color:#c97559}
+.l1 .type-spec .body{color:#5a4634}
+.l1 .type-spec .label{color:#8b6a4a}
+.l1 .btn{background:rgba(255,255,255,.6);color:#2a2018;border-color:rgba(0,0,0,.08)}
+.l1 .btn.primary{background:#2a2018;color:#fff8e8;border-color:#2a2018}
+.l1 .btn.ghost{background:transparent;border-color:transparent;color:#8b6a4a}
+.l1 .btn:hover{background:rgba(255,255,255,.85)}
+.l1 .btn.primary:hover{background:#1a130d}
+.l1 .chip{background:rgba(255,255,255,.55);color:#5a4634;border:1px solid rgba(0,0,0,.08)}
+.l1 .chip.on{background:#2a2018;color:#fff8e8;border-color:#2a2018;font-weight:500}
+.l1 .input-box{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.7);box-shadow:0 16px 40px -20px rgba(168,114,66,.4),inset 0 1px 0 rgba(255,255,255,.7)}
+.l1 .input-box .ref-uploader{background:rgba(255,255,255,.5);border:1px dashed rgba(0,0,0,.15);color:#5a4634}
+.l1 .input-box .placeholder{color:#8b6a4a}
+.l1 .input-box .controls .pill{background:rgba(255,255,255,.6);color:#2a2018;border:1px solid rgba(0,0,0,.08)}
+.l1 .input-box .send{background:#2a2018;color:#fff8e8}
+.l1 .result-card{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.6);box-shadow:0 12px 36px -20px rgba(168,114,66,.3)}
+.l1 .result-card .preview{background:linear-gradient(135deg,rgba(201,117,89,.2),rgba(255,210,150,.4));color:#2a2018}
+.l1 .result-card .prompt{color:#2a2018;border-bottom:1px solid rgba(0,0,0,.08)}
+.l1 .result-card .meta{color:#8b6a4a;border-top:1px solid rgba(0,0,0,.08)}
+.l1 .result-card .actions span{background:rgba(255,255,255,.55);color:#2a2018;border:1px solid rgba(0,0,0,.08)}
+.l1 .proj-card{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.6);color:#2a2018;font-family:'Fraunces',serif;font-weight:400;font-size:17px}
+.l1 .proj-card.create{background:#2a2018;color:#fff8e8;border-color:#2a2018;font-weight:500}
+.l1 .proj-card:hover{background:rgba(255,255,255,.7)}
+.l1 .proj-card.create:hover{background:#1a130d}
+.l1 .layout-mini{background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.6);color:#2a2018}
+.l1 .layout-mini .ll{background:rgba(255,255,255,.5);border-right:1px solid rgba(0,0,0,.06)}
+.l1 .layout-mini .lc{background:rgba(255,255,255,.3);border-right:1px solid rgba(0,0,0,.06)}
+.l1 .layout-mini .ll-item{color:#5a4634;font-family:'Fraunces',serif;font-style:italic;font-size:11px}
+.l1 .layout-mini .ll-item.on{background:#2a2018;color:#fff8e8;font-style:normal;font-weight:500}
+.l1 .layout-mini .lc-item{background:rgba(255,255,255,.5);color:#5a4634}
+.l1 .layout-mini .lr-card{background:linear-gradient(135deg,rgba(201,117,89,.2),rgba(255,210,150,.3));border:1px solid rgba(255,255,255,.5)}
+.l1 .canvas-mini{background:rgba(255,255,255,.35);border:1px dashed rgba(0,0,0,.12);color:#8b6a4a}
+
+/* ==========================================================
+   L2 · Liquid Mint — pastel mesh spring
+   ========================================================== */
+.l2{color:#2d3a30}
+.l2 .bg{
+  background:
+    radial-gradient(45% 45% at 18% 22%,rgba(166,210,180,.7),transparent 70%),
+    radial-gradient(40% 45% at 82% 18%,rgba(255,205,180,.55),transparent 70%),
+    radial-gradient(50% 50% at 82% 82%,rgba(180,210,235,.6),transparent 70%),
+    radial-gradient(45% 45% at 18% 82%,rgba(220,200,235,.5),transparent 70%),
+    linear-gradient(160deg,#f4faf3 0%,#eef6ee 100%);
+}
+.l2 .variant-tag{background:rgba(255,255,255,.65);color:#4a5a4f;border-color:rgba(0,0,0,.05)}
+.l2 .pick-btn{background:#3d6b4f;color:#f4faf3;border-color:#3d6b4f}
+.l2 .pick-btn:hover{background:#2d5a3f;border-color:#2d5a3f}
+.l2 .v-head h3{font-family:'DM Sans',sans-serif;font-weight:500;font-size:62px;letter-spacing:-.025em;color:#2d3a30}
+.l2 .v-head h3 em{font-style:normal;font-weight:400;display:block;font-size:.42em;color:#3d6b4f;margin-top:8px;letter-spacing:0}
+.l2 .v-head .tag-line{color:#4a5a4f}
+.l2 .v-head .ref span{background:rgba(255,255,255,.65);border:1px solid rgba(0,0,0,.06);color:#3d6b4f;backdrop-filter:blur(14px)}
+.l2 .section-label{color:#7a8a7f}
+.l2 .swatch{color:#2d3a30;border-color:rgba(0,0,0,.06)}
+.l2 .swatch.dark{color:#fff}
+.l2 .swatch.glass{background:rgba(255,255,255,.65)}
+.l2 .type-spec .display{font-weight:500;color:#2d3a30;font-size:46px}
+.l2 .type-spec .display em{font-style:normal;color:#3d6b4f}
+.l2 .type-spec .body{color:#4a5a4f}
+.l2 .type-spec .label{color:#7a8a7f}
+.l2 .btn{background:rgba(255,255,255,.65);color:#2d3a30;border-color:rgba(0,0,0,.06)}
+.l2 .btn.primary{background:#3d6b4f;color:#f4faf3;border-color:#3d6b4f}
+.l2 .btn.ghost{background:transparent;border-color:transparent;color:#7a8a7f}
+.l2 .btn:hover{background:rgba(255,255,255,.9)}
+.l2 .btn.primary:hover{background:#2d5a3f}
+.l2 .chip{background:rgba(255,255,255,.65);color:#4a5a4f;border:1px solid rgba(0,0,0,.06)}
+.l2 .chip.on{background:#3d6b4f;color:#f4faf3;border-color:#3d6b4f;font-weight:500}
+.l2 .input-box{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7);box-shadow:0 16px 40px -20px rgba(61,107,79,.2),inset 0 1px 0 rgba(255,255,255,.7)}
+.l2 .input-box .ref-uploader{background:rgba(255,255,255,.6);border:1px dashed rgba(0,0,0,.12);color:#4a5a4f}
+.l2 .input-box .placeholder{color:#7a8a7f}
+.l2 .input-box .controls .pill{background:rgba(255,255,255,.7);color:#2d3a30;border:1px solid rgba(0,0,0,.06)}
+.l2 .input-box .send{background:#3d6b4f;color:#f4faf3}
+.l2 .result-card{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7);box-shadow:0 12px 36px -20px rgba(61,107,79,.18)}
+.l2 .result-card .preview{background:linear-gradient(135deg,rgba(166,210,180,.5),rgba(180,210,235,.5));color:#2d3a30}
+.l2 .result-card .prompt{color:#2d3a30;border-bottom:1px solid rgba(0,0,0,.06)}
+.l2 .result-card .meta{color:#7a8a7f;border-top:1px solid rgba(0,0,0,.06)}
+.l2 .result-card .actions span{background:rgba(255,255,255,.65);color:#2d3a30;border:1px solid rgba(0,0,0,.06)}
+.l2 .proj-card{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7);color:#2d3a30}
+.l2 .proj-card.create{background:#3d6b4f;color:#f4faf3;border-color:#3d6b4f;font-weight:500}
+.l2 .proj-card:hover{background:rgba(255,255,255,.8)}
+.l2 .proj-card.create:hover{background:#2d5a3f}
+.l2 .layout-mini{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.7);color:#2d3a30}
+.l2 .layout-mini .ll{background:rgba(255,255,255,.55);border-right:1px solid rgba(0,0,0,.05)}
+.l2 .layout-mini .lc{background:rgba(255,255,255,.3);border-right:1px solid rgba(0,0,0,.05)}
+.l2 .layout-mini .ll-item{color:#4a5a4f;border-radius:8px}
+.l2 .layout-mini .ll-item.on{background:#3d6b4f;color:#f4faf3;font-weight:500}
+.l2 .layout-mini .lc-item{background:rgba(255,255,255,.55);color:#4a5a4f}
+.l2 .layout-mini .lr-card{background:linear-gradient(135deg,rgba(166,210,180,.45),rgba(180,210,235,.45));border:1px solid rgba(255,255,255,.5)}
+.l2 .canvas-mini{background:rgba(255,255,255,.4);border:1px dashed rgba(0,0,0,.1);color:#7a8a7f}
+
+/* ==========================================================
+   L3 · Liquid Porcelain — refined cool ceramic light
+   ========================================================== */
+.l3{color:#1a1d24}
+.l3 .bg{
+  background:
+    radial-gradient(60% 50% at 18% 12%,rgba(180,200,235,.45),transparent 70%),
+    radial-gradient(50% 50% at 86% 86%,rgba(220,210,240,.4),transparent 70%),
+    radial-gradient(70% 50% at 50% 50%,rgba(255,255,255,.5),transparent 70%),
+    linear-gradient(165deg,#f8f9fc 0%,#eef0f5 50%,#e3e7f0 100%);
+}
+.l3 .variant-tag{background:rgba(255,255,255,.7);color:#5a6175;border-color:rgba(0,0,0,.05)}
+.l3 .pick-btn{background:#1a1d24;color:#f4f6fa;border-color:#1a1d24}
+.l3 .pick-btn:hover{background:#000;border-color:#000}
+.l3 .v-head h3{font-family:'Geist','Inter',sans-serif;font-weight:600;font-size:60px;letter-spacing:-.03em;color:#1a1d24}
+.l3 .v-head h3 em{font-style:normal;font-weight:300;display:block;font-size:.4em;color:#7a8095;margin-top:8px;letter-spacing:0}
+.l3 .v-head .tag-line{color:#5a6175}
+.l3 .v-head .ref span{background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.06);color:#5a6175;backdrop-filter:blur(14px);font-family:'Geist Mono','JetBrains Mono',monospace;font-size:11px}
+.l3 .section-label{color:#7a8095;font-family:'Geist Mono','JetBrains Mono',monospace}
+.l3 .swatch{color:#1a1d24;border-color:rgba(0,0,0,.06);font-family:'Geist Mono',monospace}
+.l3 .swatch.dark{color:#fff}
+.l3 .swatch.glass{background:rgba(255,255,255,.7)}
+.l3 .type-spec .display{font-family:'Geist',sans-serif;font-weight:600;color:#1a1d24;font-size:46px}
+.l3 .type-spec .display em{font-style:normal;color:#6b8fc1;font-weight:300}
+.l3 .type-spec .body{color:#5a6175;font-size:14px}
+.l3 .type-spec .label{color:#7a8095;font-family:'Geist Mono',monospace}
+.l3 .btn{background:rgba(255,255,255,.7);color:#1a1d24;border-color:rgba(0,0,0,.08);font-family:'Geist',sans-serif}
+.l3 .btn.primary{background:#1a1d24;color:#f4f6fa;border-color:#1a1d24}
+.l3 .btn.ghost{background:transparent;border-color:transparent;color:#7a8095}
+.l3 .btn:hover{background:rgba(255,255,255,.95)}
+.l3 .btn.primary:hover{background:#000}
+.l3 .chip{background:rgba(255,255,255,.7);color:#5a6175;border:1px solid rgba(0,0,0,.06)}
+.l3 .chip.on{background:#1a1d24;color:#f4f6fa;border-color:#1a1d24;font-weight:500}
+.l3 .input-box{background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.8);box-shadow:0 16px 48px -20px rgba(106,135,165,.18),inset 0 1px 0 rgba(255,255,255,.9);border-radius:24px}
+.l3 .input-box .ref-uploader{background:rgba(255,255,255,.6);border:1px dashed rgba(0,0,0,.12);color:#5a6175}
+.l3 .input-box .placeholder{color:#7a8095}
+.l3 .input-box .controls .pill{background:rgba(255,255,255,.75);color:#1a1d24;border:1px solid rgba(0,0,0,.06)}
+.l3 .input-box .send{background:#1a1d24;color:#f4f6fa}
+.l3 .result-card{background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 36px -20px rgba(106,135,165,.18)}
+.l3 .result-card .preview{background:linear-gradient(135deg,rgba(180,200,235,.4),rgba(220,210,240,.4));color:#1a1d24}
+.l3 .result-card .prompt{color:#1a1d24;border-bottom:1px solid rgba(0,0,0,.06)}
+.l3 .result-card .meta{color:#7a8095;border-top:1px solid rgba(0,0,0,.06)}
+.l3 .result-card .actions span{background:rgba(255,255,255,.7);color:#1a1d24;border:1px solid rgba(0,0,0,.06)}
+.l3 .proj-card{background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.8);color:#1a1d24}
+.l3 .proj-card.create{background:#1a1d24;color:#f4f6fa;border-color:#1a1d24;font-weight:500}
+.l3 .proj-card:hover{background:rgba(255,255,255,.8)}
+.l3 .proj-card.create:hover{background:#000}
+.l3 .layout-mini{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.8);color:#1a1d24;border-radius:14px}
+.l3 .layout-mini .ll{background:rgba(255,255,255,.6);border-right:1px solid rgba(0,0,0,.05)}
+.l3 .layout-mini .lc{background:rgba(255,255,255,.35);border-right:1px solid rgba(0,0,0,.05)}
+.l3 .layout-mini .ll-item{color:#5a6175;border-radius:6px;font-family:'Geist',sans-serif;font-size:11px}
+.l3 .layout-mini .ll-item.on{background:#1a1d24;color:#f4f6fa;font-weight:500}
+.l3 .layout-mini .lc-item{background:rgba(255,255,255,.6);color:#5a6175;border-radius:6px}
+.l3 .layout-mini .lr-card{background:linear-gradient(135deg,rgba(180,200,235,.35),rgba(220,210,240,.35));border:1px solid rgba(255,255,255,.6);border-radius:8px}
+.l3 .canvas-mini{background:rgba(255,255,255,.4);border:1px dashed rgba(0,0,0,.1);color:#7a8095;border-radius:14px}
+
+</style>
+</head>
+<body>
+
+<header class="pg-top">
+  <div class="brand">
+    <b>liquid</b>
+    <span class="sub">版本 B · Design Language Playground · 6 版液态玻璃</span>
+  </div>
+  <nav>
+    <a href="./design-system.html">DS</a>
+    <a href="./demo.html">Demo</a>
+    <a href="./prd.html" class="disabled">PRD (撰写中)</a>
+  </nav>
+</header>
+
+<section class="pg-intro">
+  <h2>给 AI 创作的 <em>Liquid Glass</em></h2>
+  <p>这次以"液态玻璃"为统一语言：所有版本都使用 Apple visionOS / iOS 26 那种半透明玻璃面 + 摄影感背景的形态。但每版的<strong>明暗基调、光影色温、字体气质</strong>都不同——3 暗 + 3 亮。</p>
+  <p>玻璃要看见质感，必须有可被透出的色彩或光斑。我用多层径向渐变 + 微噪点模拟摄影背景，每版的"故事光"不一样。</p>
+  <div class="meta">
+    <span>同元件横评</span>
+    <span>3 dark · 3 light</span>
+    <span>backdrop-filter blur</span>
+    <span id="picked-status">未选定</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     D1 · Liquid Cinematic
+     ============================================================ -->
+<section class="variant d1" data-variant="d1">
+  <div class="bg"></div>
+  <span class="variant-tag">D1 / LIQUID · CINEMATIC</span>
+  <button class="pick-btn" data-pick="d1">选择此版</button>
+  <div class="v-stage">
+
+    <div class="v-head">
+      <h3>Liquid <em>Cinematic — 暮光、玻璃与电影。</em></h3>
+      <p class="tag-line">FLORA 的精神近邻：暖色调摄影背景 + 深色玻璃卡 + 衬线 italic 标题。第一眼像电影海报，但每个交互都是当代工具。</p>
+      <div class="ref">
+        <span>FLORA</span><span>Apple TV+</span><span>Letterboxd</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Glass Tints over Backdrop</p>
+      <div class="swatches">
+        <div class="swatch glass" style="background:rgba(20,12,5,.55)"><span class="hex">rgba(20,12,5,.55)</span><span class="name">Card / Base</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.08)"><span class="hex">rgba(255,255,255,.08)</span><span class="name">Hover</span></div>
+        <div class="swatch glass" style="background:rgba(255,210,140,.18)"><span class="hex">+gold</span><span class="name">Warm Wash</span></div>
+        <div class="swatch" style="background:#fff8e8;color:#231509"><span class="hex">#FFF8E8</span><span class="name">Highlight</span></div>
+        <div class="swatch" style="background:#d3a871;color:#231509"><span class="hex">#D3A871</span><span class="name">Gold</span></div>
+        <div class="swatch" style="background:#231509"><span class="hex">#231509</span><span class="name">Coffee</span></div>
+        <div class="swatch" style="background:#0c0805"><span class="hex">#0C0805</span><span class="name">Void</span></div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Typography</p>
+        <div class="type-spec">
+          <p class="display">智能 <em>画布</em></p>
+          <p class="body">Fraunces italic 承担"作者感"，让产品看起来像被精心导演过的；Inter 处理一切 UI 细节。两者在情绪和秩序之间换班。</p>
+          <p class="label">Display · Fraunces 300 italic</p>
+          <p class="label">Body · Inter 400 / 500</p>
+          <p class="label">Mono · JetBrains Mono</p>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Buttons & Tags</p>
+        <div class="btn-row">
+          <button class="btn primary">生成视频</button>
+          <button class="btn">查看资产</button>
+          <button class="btn ghost">取消</button>
+          <button class="btn" disabled>不可用</button>
+        </div>
+        <div class="tag-row" style="margin-top:18px">
+          <span class="chip on">所有视频</span>
+          <span class="chip">#标签 A</span>
+          <span class="chip">#标签 B</span>
+          <span class="chip">#角色</span>
+          <span class="chip">#场景</span>
+          <span class="chip">#道具</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Smart Prompt</p>
+      <div class="input-box">
+        <span class="ref-uploader">＋ 参考内容</span>
+        <div class="placeholder">上传 1–3 个文档素材，输入文字描述你的需求。例如：上传剧本后选择技能进行处理。</div>
+        <div class="controls">
+          <span class="pill">◐ Seedance 2.0</span>
+          <span class="pill">◎ 全能参考</span>
+          <span class="pill">▭ 16:9 · 720P</span>
+          <span class="pill">⏱ 5s</span>
+          <span class="spacer"></span>
+          <span class="pill">◇ 10</span>
+          <span class="send">↑</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Result Card</p>
+        <div class="result-card">
+          <div class="prompt">基于「分镜脚本 V2」和剧情 V2 的高角色卡，生成 2 张高质量画像。</div>
+          <div class="preview">✦</div>
+          <div class="meta">
+            <span>GPT image 2</span><span>9:16</span><span>720P</span><span>2026·05·04 14:59</span>
+          </div>
+          <div class="actions">
+            <span>↻ 重新编辑</span><span>⟲ 再次生成</span><span>★ 收藏</span><span>→ 移动</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Projects</p>
+        <div class="proj-grid">
+          <div class="proj-card create">＋ 创建项目</div>
+          <div class="proj-card">默认项目</div>
+          <div class="proj-card">项目 1</div>
+          <div class="proj-card">项目 2</div>
+        </div>
+        <p class="section-label" style="margin-top:22px">Smart Canvas</p>
+        <div class="canvas-mini"><span>设计中 · Smart Canvas</span></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Layout</p>
+      <div class="layout-mini">
+        <div class="ll">
+          <div class="ll-item">项目 1</div>
+          <div class="ll-item on">智能</div>
+          <div class="ll-item">图片</div>
+          <div class="ll-item">视频</div>
+          <div class="ll-item">文本</div>
+          <div class="ll-item">资产</div>
+        </div>
+        <div class="lc">
+          <div class="lc-item">默认创作</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+        </div>
+        <div class="lr">
+          <div class="lr-card"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     D2 · Liquid Aurora
+     ============================================================ -->
+<section class="variant d2" data-variant="d2">
+  <div class="bg"></div>
+  <span class="variant-tag">D2 / LIQUID · AURORA</span>
+  <button class="pick-btn" data-pick="d2">选择此版</button>
+  <div class="v-stage">
+
+    <div class="v-head">
+      <h3>Aurora <em>四象限渐变光斑透过磨砂玻璃。</em></h3>
+      <p class="tag-line">深紫底 + 四角极光光斑 + 中性玻璃。给 AI 工具最容易"显现"的视觉气质——你能感觉到玻璃后面有东西在发光。</p>
+      <div class="ref">
+        <span>Apple Vision</span><span>Cursor</span><span>Linear /now</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Glass Tints</p>
+      <div class="swatches">
+        <div class="swatch gradient"><span class="hex">Aurora Mesh</span><span class="name">Bg</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.06)"><span class="hex">rgba(255,255,255,.06)</span><span class="name">Card</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.12)"><span class="hex">+12%</span><span class="name">Hover</span></div>
+        <div class="swatch" style="background:#ff7bd4;color:#0c0820"><span class="hex">#FF7BD4</span><span class="name">Pink</span></div>
+        <div class="swatch" style="background:#a47bff;color:#0c0820"><span class="hex">#A47BFF</span><span class="name">Purple</span></div>
+        <div class="swatch" style="background:#7baeff;color:#0c0820"><span class="hex">#7BAEFF</span><span class="name">Blue</span></div>
+        <div class="swatch" style="background:#5fe9c9;color:#0c0820"><span class="hex">#5FE9C9</span><span class="name">Mint</span></div>
+        <div class="swatch" style="background:#0c0820"><span class="hex">#0C0820</span><span class="name">Void</span></div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Typography</p>
+        <div class="type-spec">
+          <p class="display">Smart <em>Canvas</em></p>
+          <p class="body">Geist 当代显示字 + Geist Mono 用于代码风标签。渐变着色让标题成为整版的视觉焦点，而玻璃面让其余信息退后。</p>
+          <p class="label">Display · Geist 600</p>
+          <p class="label">Body · Geist 400</p>
+          <p class="label">Mono · Geist Mono</p>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Buttons & Tags</p>
+        <div class="btn-row">
+          <button class="btn primary">生成视频</button>
+          <button class="btn">查看资产</button>
+          <button class="btn ghost">取消</button>
+          <button class="btn" disabled>不可用</button>
+        </div>
+        <div class="tag-row" style="margin-top:18px">
+          <span class="chip on">所有视频</span>
+          <span class="chip">#标签 A</span>
+          <span class="chip">#标签 B</span>
+          <span class="chip">#角色</span>
+          <span class="chip">#场景</span>
+          <span class="chip">#道具</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Smart Prompt</p>
+      <div class="input-box">
+        <span class="ref-uploader">＋ 参考内容</span>
+        <div class="placeholder">上传 1–3 个文档素材，输入文字描述你的需求。例如：上传剧本后选择技能进行处理。</div>
+        <div class="controls">
+          <span class="pill">◐ Seedance 2.0</span>
+          <span class="pill">◎ 全能参考</span>
+          <span class="pill">▭ 16:9 · 720P</span>
+          <span class="pill">⏱ 5s</span>
+          <span class="spacer"></span>
+          <span class="pill">◇ 10</span>
+          <span class="send">↑</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Result Card</p>
+        <div class="result-card">
+          <div class="prompt">基于「分镜脚本 V2」和剧情 V2 的高角色卡，生成 2 张高质量画像。</div>
+          <div class="preview">✶</div>
+          <div class="meta">
+            <span>GPT image 2</span><span>9:16</span><span>720P</span><span>2026·05·04 14:59</span>
+          </div>
+          <div class="actions">
+            <span>↻ 重新编辑</span><span>⟲ 再次生成</span><span>★ 收藏</span><span>→ 移动</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Projects</p>
+        <div class="proj-grid">
+          <div class="proj-card create">＋ 创建项目</div>
+          <div class="proj-card">默认项目</div>
+          <div class="proj-card">项目 1</div>
+          <div class="proj-card">项目 2</div>
+        </div>
+        <p class="section-label" style="margin-top:22px">Smart Canvas</p>
+        <div class="canvas-mini"><span>设计中 · Smart Canvas</span></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Layout</p>
+      <div class="layout-mini">
+        <div class="ll">
+          <div class="ll-item">项目 1</div>
+          <div class="ll-item on">智能</div>
+          <div class="ll-item">图片</div>
+          <div class="ll-item">视频</div>
+          <div class="ll-item">文本</div>
+          <div class="ll-item">资产</div>
+        </div>
+        <div class="lc">
+          <div class="lc-item">默认创作</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+        </div>
+        <div class="lr">
+          <div class="lr-card"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     D3 · Liquid Obsidian
+     ============================================================ -->
+<section class="variant d3" data-variant="d3">
+  <div class="bg"></div>
+  <span class="variant-tag">D3 / LIQUID · OBSIDIAN</span>
+  <button class="pick-btn" data-pick="d3">选择此版</button>
+  <div class="v-stage">
+
+    <div class="v-head">
+      <h3>Obsidian <em>// near-black studio · 给重度玩家</em></h3>
+      <p class="tag-line">极深玻璃 + 单色蓝调辅色 + 紧凑信息密度。摄影背景退到几乎不可见，只在角落漏一缕色光。给每天用 8 小时的人。</p>
+      <div class="ref">
+        <span>// LINEAR</span><span>// FIGMA DARK</span><span>// CLAUDE.AI DESKTOP</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Glass Tints</p>
+      <div class="swatches">
+        <div class="swatch glass" style="background:rgba(15,17,22,.6)"><span class="hex">rgba(15,17,22,.6)</span><span class="name">Card</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.04)"><span class="hex">+4%</span><span class="name">Subtle</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.07)"><span class="hex">+7%</span><span class="name">Hover</span></div>
+        <div class="swatch" style="background:#0a0b0e"><span class="hex">#0A0B0E</span><span class="name">Bg</span></div>
+        <div class="swatch" style="background:#16181d"><span class="hex">#16181D</span><span class="name">Surface</span></div>
+        <div class="swatch" style="background:#7d8493"><span class="hex">#7D8493</span><span class="name">Muted</span></div>
+        <div class="swatch" style="background:#78aaff;color:#0a0b0e"><span class="hex">#78AAFF</span><span class="name">Accent</span></div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Typography</p>
+        <div class="type-spec">
+          <p class="display">智能画布 <em>Smart Canvas</em></p>
+          <p class="body">Inter 13–14px 主干，单屏信息密度高。Mono 字体只用于版本号、时间戳、参数标签。蓝色辅色仅作功能性强调（active / 链接），不参与情绪表达。</p>
+          <p class="label">Heading · Inter 700</p>
+          <p class="label">Body · Inter 400 · 13px</p>
+          <p class="label">Mono · JetBrains Mono 10px</p>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Buttons & Tags</p>
+        <div class="btn-row">
+          <button class="btn primary">生成视频</button>
+          <button class="btn">查看资产</button>
+          <button class="btn ghost">取消</button>
+          <button class="btn" disabled>不可用</button>
+        </div>
+        <div class="tag-row" style="margin-top:18px">
+          <span class="chip on">所有视频</span>
+          <span class="chip">#标签 A</span>
+          <span class="chip">#标签 B</span>
+          <span class="chip">#角色</span>
+          <span class="chip">#场景</span>
+          <span class="chip">#道具</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Smart Prompt</p>
+      <div class="input-box">
+        <span class="ref-uploader">＋ 参考内容</span>
+        <div class="placeholder">上传 1–3 个文档素材，输入文字描述你的需求。例如：上传剧本后选择技能进行处理。</div>
+        <div class="controls">
+          <span class="pill">Seedance 2.0</span>
+          <span class="pill">全能参考</span>
+          <span class="pill">16:9 · 720P</span>
+          <span class="pill">5s</span>
+          <span class="spacer"></span>
+          <span class="pill">◇ 10</span>
+          <span class="send">↑</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Result Card</p>
+        <div class="result-card">
+          <div class="prompt">基于「分镜脚本 V2」和剧情 V2 的高角色卡，生成 2 张高质量画像。</div>
+          <div class="preview">▢</div>
+          <div class="meta">
+            <span>GPT_image_2</span><span>9:16</span><span>720P</span><span>2026.05.04 14:59</span>
+          </div>
+          <div class="actions">
+            <span>编辑</span><span>再次生成</span><span>收藏</span><span>移动</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Projects</p>
+        <div class="proj-grid">
+          <div class="proj-card create">＋ 创建项目</div>
+          <div class="proj-card">默认项目</div>
+          <div class="proj-card">项目 1</div>
+          <div class="proj-card">项目 2</div>
+        </div>
+        <p class="section-label" style="margin-top:22px">Smart Canvas</p>
+        <div class="canvas-mini"><span>设计中 · Smart Canvas</span></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Layout</p>
+      <div class="layout-mini">
+        <div class="ll">
+          <div class="ll-item">项目 1</div>
+          <div class="ll-item on">智能</div>
+          <div class="ll-item">图片</div>
+          <div class="ll-item">视频</div>
+          <div class="ll-item">文本</div>
+          <div class="ll-item">资产</div>
+        </div>
+        <div class="lc">
+          <div class="lc-item">默认创作</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+        </div>
+        <div class="lr">
+          <div class="lr-card"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     L1 · Liquid Sunlit
+     ============================================================ -->
+<section class="variant l1" data-variant="l1">
+  <div class="bg"></div>
+  <span class="variant-tag">L1 / LIQUID · SUNLIT</span>
+  <button class="pick-btn" data-pick="l1">选择此版</button>
+  <div class="v-stage">
+
+    <div class="v-head">
+      <h3>Sunlit <em>暖光从左上角斜照下来。</em></h3>
+      <p class="tag-line">奶油色基底 + 黄昏光斑 + 半透明白玻璃。给亮色系一个"被太阳照过"的感觉，AI 工具不需要总是冷峻。</p>
+      <div class="ref">
+        <span>FLORA Light</span><span>Soft House</span><span>Are.na</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Glass Tints</p>
+      <div class="swatches">
+        <div class="swatch glass" style="background:rgba(255,255,255,.55);color:#2a2018"><span class="hex">rgba(255,255,255,.55)</span><span class="name">Card</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.85);color:#2a2018"><span class="hex">+85%</span><span class="name">Hover</span></div>
+        <div class="swatch" style="background:#fdf3e3;color:#2a2018"><span class="hex">#FDF3E3</span><span class="name">Cream</span></div>
+        <div class="swatch" style="background:#fbe8c9;color:#2a2018"><span class="hex">#FBE8C9</span><span class="name">Sand</span></div>
+        <div class="swatch" style="background:#f8d8a4;color:#2a2018"><span class="hex">#F8D8A4</span><span class="name">Honey</span></div>
+        <div class="swatch dark" style="background:#c97559"><span class="hex">#C97559</span><span class="name">Terra</span></div>
+        <div class="swatch dark" style="background:#2a2018"><span class="hex">#2A2018</span><span class="name">Ink</span></div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Typography</p>
+        <div class="type-spec">
+          <p class="display">智能 <em>画布</em></p>
+          <p class="body">Fraunces italic 是这版的灵魂——它让明亮的 UI 不显得"轻飘"，而是有作者感。Inter 处理实用 UI；Mono 仅用于元数据。</p>
+          <p class="label">Display · Fraunces 300 italic</p>
+          <p class="label">Body · Inter 400 / 500</p>
+          <p class="label">Mono · JetBrains Mono</p>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Buttons & Tags</p>
+        <div class="btn-row">
+          <button class="btn primary">生成视频</button>
+          <button class="btn">查看资产</button>
+          <button class="btn ghost">取消</button>
+          <button class="btn" disabled>不可用</button>
+        </div>
+        <div class="tag-row" style="margin-top:18px">
+          <span class="chip on">所有视频</span>
+          <span class="chip">#标签 A</span>
+          <span class="chip">#标签 B</span>
+          <span class="chip">#角色</span>
+          <span class="chip">#场景</span>
+          <span class="chip">#道具</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Smart Prompt</p>
+      <div class="input-box">
+        <span class="ref-uploader">＋ 参考内容</span>
+        <div class="placeholder">上传 1–3 个文档素材，输入文字描述你的需求。例如：上传剧本后选择技能进行处理。</div>
+        <div class="controls">
+          <span class="pill">◐ Seedance 2.0</span>
+          <span class="pill">◎ 全能参考</span>
+          <span class="pill">▭ 16:9 · 720P</span>
+          <span class="pill">⏱ 5s</span>
+          <span class="spacer"></span>
+          <span class="pill">◇ 10</span>
+          <span class="send">↑</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Result Card</p>
+        <div class="result-card">
+          <div class="prompt">基于「分镜脚本 V2」和剧情 V2 的高角色卡，生成 2 张高质量画像。</div>
+          <div class="preview">✦</div>
+          <div class="meta">
+            <span>GPT image 2</span><span>9:16</span><span>720P</span><span>2026·05·04 14:59</span>
+          </div>
+          <div class="actions">
+            <span>↻ 重新编辑</span><span>⟲ 再次生成</span><span>★ 收藏</span><span>→ 移动</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Projects</p>
+        <div class="proj-grid">
+          <div class="proj-card create">＋ 创建项目</div>
+          <div class="proj-card">默认项目</div>
+          <div class="proj-card">项目 1</div>
+          <div class="proj-card">项目 2</div>
+        </div>
+        <p class="section-label" style="margin-top:22px">Smart Canvas</p>
+        <div class="canvas-mini"><span>设计中 · Smart Canvas</span></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Layout</p>
+      <div class="layout-mini">
+        <div class="ll">
+          <div class="ll-item">项目 1</div>
+          <div class="ll-item on">智能</div>
+          <div class="ll-item">图片</div>
+          <div class="ll-item">视频</div>
+          <div class="ll-item">文本</div>
+          <div class="ll-item">资产</div>
+        </div>
+        <div class="lc">
+          <div class="lc-item">默认创作</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+        </div>
+        <div class="lr">
+          <div class="lr-card"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     L2 · Liquid Mint
+     ============================================================ -->
+<section class="variant l2" data-variant="l2">
+  <div class="bg"></div>
+  <span class="variant-tag">L2 / LIQUID · MINT</span>
+  <button class="pick-btn" data-pick="l2">选择此版</button>
+  <div class="v-stage">
+
+    <div class="v-head">
+      <h3>Mint <em>四角粉绿光晕透出的轻盈玻璃。</em></h3>
+      <p class="tag-line">浅绿底 + 粉色 / 蓝色 / 紫色四角光斑 + 半透明白玻璃。给 AI 工具一种"植物茶馆"的温度——温柔但有方向感。</p>
+      <div class="ref">
+        <span>Notion AI</span><span>Linear marketing</span><span>Dropbox Bash</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Glass Tints</p>
+      <div class="swatches">
+        <div class="swatch glass" style="background:rgba(255,255,255,.65);color:#2d3a30"><span class="hex">rgba(255,255,255,.65)</span><span class="name">Card</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.85);color:#2d3a30"><span class="hex">+85%</span><span class="name">Hover</span></div>
+        <div class="swatch dark" style="background:#a6d2b4"><span class="hex">#A6D2B4</span><span class="name">Sage</span></div>
+        <div class="swatch dark" style="background:#ffcdb4"><span class="hex">#FFCDB4</span><span class="name">Peach</span></div>
+        <div class="swatch dark" style="background:#b4d2eb"><span class="hex">#B4D2EB</span><span class="name">Sky</span></div>
+        <div class="swatch dark" style="background:#dcc8eb"><span class="hex">#DCC8EB</span><span class="name">Lilac</span></div>
+        <div class="swatch dark" style="background:#3d6b4f"><span class="hex">#3D6B4F</span><span class="name">Forest</span></div>
+        <div class="swatch dark" style="background:#2d3a30"><span class="hex">#2D3A30</span><span class="name">Ink</span></div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Typography</p>
+        <div class="type-spec">
+          <p class="display">智能画布 <em>Smart Canvas</em></p>
+          <p class="body">DM Sans 几何感强、圆润，适合中英文混排。Forest green 是唯一的强调色，其余配色都退到很轻的背景层。整体气质：温柔、克制、可信赖。</p>
+          <p class="label">Display · DM Sans 500</p>
+          <p class="label">Body · DM Sans 400</p>
+          <p class="label">Tone · 温柔克制</p>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Buttons & Tags</p>
+        <div class="btn-row">
+          <button class="btn primary">生成视频</button>
+          <button class="btn">查看资产</button>
+          <button class="btn ghost">取消</button>
+          <button class="btn" disabled>不可用</button>
+        </div>
+        <div class="tag-row" style="margin-top:18px">
+          <span class="chip on">所有视频</span>
+          <span class="chip">#标签 A</span>
+          <span class="chip">#标签 B</span>
+          <span class="chip">#角色</span>
+          <span class="chip">#场景</span>
+          <span class="chip">#道具</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Smart Prompt</p>
+      <div class="input-box">
+        <span class="ref-uploader">＋ 参考内容</span>
+        <div class="placeholder">上传 1–3 个文档素材，输入文字描述你的需求。例如：上传剧本后选择技能进行处理。</div>
+        <div class="controls">
+          <span class="pill">◐ Seedance 2.0</span>
+          <span class="pill">◎ 全能参考</span>
+          <span class="pill">▭ 16:9 · 720P</span>
+          <span class="pill">⏱ 5s</span>
+          <span class="spacer"></span>
+          <span class="pill">◇ 10</span>
+          <span class="send">↑</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Result Card</p>
+        <div class="result-card">
+          <div class="prompt">基于「分镜脚本 V2」和剧情 V2 的高角色卡，生成 2 张高质量画像。</div>
+          <div class="preview">◇</div>
+          <div class="meta">
+            <span>GPT image 2</span><span>9:16</span><span>720P</span><span>2026·05·04 14:59</span>
+          </div>
+          <div class="actions">
+            <span>↻ 重新编辑</span><span>⟲ 再次生成</span><span>★ 收藏</span><span>→ 移动</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Projects</p>
+        <div class="proj-grid">
+          <div class="proj-card create">＋ 创建项目</div>
+          <div class="proj-card">默认项目</div>
+          <div class="proj-card">项目 1</div>
+          <div class="proj-card">项目 2</div>
+        </div>
+        <p class="section-label" style="margin-top:22px">Smart Canvas</p>
+        <div class="canvas-mini"><span>设计中 · Smart Canvas</span></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Layout</p>
+      <div class="layout-mini">
+        <div class="ll">
+          <div class="ll-item">项目 1</div>
+          <div class="ll-item on">智能</div>
+          <div class="ll-item">图片</div>
+          <div class="ll-item">视频</div>
+          <div class="ll-item">文本</div>
+          <div class="ll-item">资产</div>
+        </div>
+        <div class="lc">
+          <div class="lc-item">默认创作</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+        </div>
+        <div class="lr">
+          <div class="lr-card"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     L3 · Liquid Porcelain
+     ============================================================ -->
+<section class="variant l3" data-variant="l3">
+  <div class="bg"></div>
+  <span class="variant-tag">L3 / LIQUID · PORCELAIN</span>
+  <button class="pick-btn" data-pick="l3">选择此版</button>
+  <div class="v-stage">
+
+    <div class="v-head">
+      <h3>Porcelain <em>// 极致克制的瓷器质感</em></h3>
+      <p class="tag-line">冷白底 + 极淡蓝紫光斑 + 高透白玻璃。亮色系里最克制的一版——什么都没有，但每个像素都精修过。给追求"克制即奢侈"的眼睛。</p>
+      <div class="ref">
+        <span>Linear Light</span><span>Vercel</span><span>Apple HIG</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Glass Tints</p>
+      <div class="swatches">
+        <div class="swatch glass" style="background:rgba(255,255,255,.7);color:#1a1d24"><span class="hex">rgba(255,255,255,.7)</span><span class="name">Card</span></div>
+        <div class="swatch glass" style="background:rgba(255,255,255,.95);color:#1a1d24"><span class="hex">+95%</span><span class="name">Solid</span></div>
+        <div class="swatch" style="background:#f8f9fc;color:#1a1d24"><span class="hex">#F8F9FC</span><span class="name">Bg</span></div>
+        <div class="swatch" style="background:#eef0f5;color:#1a1d24"><span class="hex">#EEF0F5</span><span class="name">Tint</span></div>
+        <div class="swatch dark" style="background:#7a8095"><span class="hex">#7A8095</span><span class="name">Muted</span></div>
+        <div class="swatch dark" style="background:#6b8fc1"><span class="hex">#6B8FC1</span><span class="name">Blue</span></div>
+        <div class="swatch dark" style="background:#1a1d24"><span class="hex">#1A1D24</span><span class="name">Ink</span></div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Typography</p>
+        <div class="type-spec">
+          <p class="display">智能画布 <em>Smart Canvas</em></p>
+          <p class="body">Geist 处理一切，从大标题到 12px 标签，靠 weight 和 size 拉开层级，不靠不同字体。Geist Mono 仅出现在版本号、时间戳。极简的字体系统，反而让品质感提升。</p>
+          <p class="label">All · Geist 300 / 600</p>
+          <p class="label">Mono · Geist Mono</p>
+          <p class="label">Tone · 克制即奢侈</p>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Buttons & Tags</p>
+        <div class="btn-row">
+          <button class="btn primary">生成视频</button>
+          <button class="btn">查看资产</button>
+          <button class="btn ghost">取消</button>
+          <button class="btn" disabled>不可用</button>
+        </div>
+        <div class="tag-row" style="margin-top:18px">
+          <span class="chip on">所有视频</span>
+          <span class="chip">#标签 A</span>
+          <span class="chip">#标签 B</span>
+          <span class="chip">#角色</span>
+          <span class="chip">#场景</span>
+          <span class="chip">#道具</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Smart Prompt</p>
+      <div class="input-box">
+        <span class="ref-uploader">＋ 参考内容</span>
+        <div class="placeholder">上传 1–3 个文档素材，输入文字描述你的需求。例如：上传剧本后选择技能进行处理。</div>
+        <div class="controls">
+          <span class="pill">◐ Seedance 2.0</span>
+          <span class="pill">◎ 全能参考</span>
+          <span class="pill">▭ 16:9 · 720P</span>
+          <span class="pill">⏱ 5s</span>
+          <span class="spacer"></span>
+          <span class="pill">◇ 10</span>
+          <span class="send">↑</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-2">
+      <div>
+        <p class="section-label">Result Card</p>
+        <div class="result-card">
+          <div class="prompt">基于「分镜脚本 V2」和剧情 V2 的高角色卡，生成 2 张高质量画像。</div>
+          <div class="preview">○</div>
+          <div class="meta">
+            <span>GPT image 2</span><span>9:16</span><span>720P</span><span>2026·05·04 14:59</span>
+          </div>
+          <div class="actions">
+            <span>↻ 重新编辑</span><span>⟲ 再次生成</span><span>★ 收藏</span><span>→ 移动</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-label">Projects</p>
+        <div class="proj-grid">
+          <div class="proj-card create">＋ 创建项目</div>
+          <div class="proj-card">默认项目</div>
+          <div class="proj-card">项目 1</div>
+          <div class="proj-card">项目 2</div>
+        </div>
+        <p class="section-label" style="margin-top:22px">Smart Canvas</p>
+        <div class="canvas-mini"><span>设计中 · Smart Canvas</span></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="section-label">Layout</p>
+      <div class="layout-mini">
+        <div class="ll">
+          <div class="ll-item">项目 1</div>
+          <div class="ll-item on">智能</div>
+          <div class="ll-item">图片</div>
+          <div class="ll-item">视频</div>
+          <div class="ll-item">文本</div>
+          <div class="ll-item">资产</div>
+        </div>
+        <div class="lc">
+          <div class="lc-item">默认创作</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+          <div class="lc-item">未命名对话</div>
+        </div>
+        <div class="lr">
+          <div class="lr-card"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="pg-bottom">
+  挑选完成后告诉我"<strong>选 dN</strong>"或"<strong>选 lN</strong>"（如 <strong>选 d1</strong>），我会基于该版固化 tokens 与组件，进入件套 2 Demo。
+</footer>
+
+<script>
+(function(){
+  var KEY='version-b-picked';
+  var picked=localStorage.getItem(KEY);
+  function paint(){
+    document.querySelectorAll('.pick-btn').forEach(function(btn){
+      var v=btn.getAttribute('data-pick');
+      if(v===picked){btn.classList.add('picked');btn.textContent='已选 · '+v.toUpperCase();}
+      else{btn.classList.remove('picked');btn.textContent='选择此版';}
+    });
+    var el=document.getElementById('picked-status');
+    if(el) el.textContent = picked ? ('已选 · '+picked.toUpperCase()) : '未选定';
+  }
+  document.querySelectorAll('.pick-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var v=btn.getAttribute('data-pick');
+      picked = (picked===v) ? null : v;
+      if(picked) localStorage.setItem(KEY,picked); else localStorage.removeItem(KEY);
+      paint();
+    });
+  });
+  paint();
+})();
+</script>
+
+</body>
+</html>

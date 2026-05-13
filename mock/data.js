@@ -88,7 +88,7 @@ window.MOCK = (function () {
   // 每个会话的产出物都通过 assetId 链接到 dramaAssets 中的真实资产。
   const dramaSessions = [
     {
-      id: 's_dr1', name: '会话1 · 剧本拆解', stage: 'script', defaultTask: 'text', type: 'text',
+      id: 's_dr1', name: '会话1 · 短剧拆解', stage: 'script', defaultTask: 'text', type: 'text',
       refs: [],
       messages: [
         { role: 'user', text: '上传 S1E1 第一集剧本初稿。任务：拆出主要角色卡、关键场景设定、核心道具，每个元素附 AI 出图提示词。',
@@ -105,7 +105,7 @@ window.MOCK = (function () {
       ]
     },
     {
-      id: 's_dr_storyboard', name: '会话2 · 分镜脚本', stage: 'storyboard', defaultTask: 'text', type: 'text',
+      id: 's_dr_storyboard', name: '会话2 · 短剧分镜', stage: 'storyboard', defaultTask: 'text', type: 'text',
       refs: ['a_dr_breakdown_v2'],
       messages: [
         { role: 'user', text: '基于上一会话的拆解 V2，用「分镜脚本」技能拆出本集所有镜头。每个镜头要给出：景别、机位、时长、台词、动作描述，以及可直接用的视频 prompt。',
@@ -402,8 +402,8 @@ window.MOCK = (function () {
   };
 
   const TEXT_SKILLS = [
-    { id: 'script-breakdown', label: '剧本拆解', builtin: true },
-    { id: 'storyboard',       label: '分镜脚本', builtin: true },
+    { id: 'script-breakdown', label: '短剧拆解', builtin: true },
+    { id: 'storyboard',       label: '短剧分镜', builtin: true },
     { id: 'create-skill',     label: '创建技能', builtin: true, isCreate: true },
     { id: 'upload-skill',     label: '上传技能', builtin: true, isUpload: true }
   ];
